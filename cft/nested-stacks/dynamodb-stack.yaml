@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Project Carnation: CFN Template To Create A DynamoDB Table. 
+
+Metadata:
+  TemplateName: dynamodb-stack.yaml
+  TemplateType: DynamoDB table
+  Version: 1.0.0
+  Owner: Subhamay Bhattacharyya
+  ProjectName: Carnation
+  Modification History:
+    - 1.0.0  - May 09, 2023  -- Initial Version 
+  Resources: 
+    - DynamoDB table
+  StepsToTest: |
+    Manualy verify the Stack.
+  StepsToCleanup: |
+    Stack delete command
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    #################################### Project Name and Environment ##############################
+    - Label: 
+        default: "Project And Environment:"
+      Parameters: 
+        - ProjectName
+        - Environment
+    #################################### KMS Key ###################################################
+    - Label: 
+        default: "KMS Configuration:"
+      Parameters: 
+        - DynamoDBTableKmsMasterKeyAlias
+    #################################### DynamoDB Table ############################################
+    - Label: 
+        default: "DynamoDB Configuration"
+      Parameters: 
+        - DynamoDBTableName
+        - DynamoDBTablePartitionKey
+        - DynamoDBTablePartitionKeyAttributeType
+    ParameterLabels:
+      ProjectName:
+        default: "Project Name."
+      Environment:
+        default: "Environment Name."
+      DynamoDBTableName: 
+        default: "The Name of the DynamoDB Table."
+      DynamoDBTablePartitionKey:
+        default: "The Name of the Partition Key."
+      DynamoDBTablePartitionKeyAttributeType: 
+        default: "The Datatype of the DynamoDB Partition Key"
+Parameters:
+  ###################################### Project Name and Environment ##############################
+  ProjectName:
+    Default: project
+    Description: "The Project Name."
+    Type: String
+    MinLength: 5
+    MaxLength: 30
+    AllowedPattern: "[a-z]*"
+    ConstraintDescription: "The length should be between 5 and 30, must contain only lowercase alphabets."
+  Environment:
+    Default: devl
+    Description: "The Environment Name."
+    Type: String
+    AllowedValues: ["devl", "test", "prod"]
+    ConstraintDescription: "The Environment must be devl / test or prod"  
+  ###################################### KMS Key ###################################################
+  DynamoDBTableKmsMasterKeyAlias:
+    Default: "SB-KMS"
+    Description: "The KMS Master Key Alias To Be Used For Server Side Encryption."
+    Type: String
+    MinLength: 5
+    MaxLength: 20
+    AllowedPattern: "[a-zA-Z0-9-]*"
+    ConstraintDescription: "The length of the KMS Key Alias should be beteen 5 and 20 and can only contain lowercase alphanumeric characters and dash."
+  ###################################### DynamoDB Table ############################################
+  DynamoDBTableName:
+    Default: dynamodb-table-name
+    Description: "The Name Of The Dynamodb Table."
+    Type: String
+    MinLength: 10
+    MaxLength: 40
+    AllowedPattern: "[a-z][a-z0-9-]*"
+    ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash and should start with a letter."
+  DynamoDBTablePartitionKey:
+    Default: partitionKey
+    Description: "The Name Of The Dynamodb Partition Key."
+    Type: String
+    MinLength: 2
+    MaxLength: 30
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9\-_]*'
+    ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+  DynamoDBTablePartitionKeyAttributeType:
+    Default: "N"
+    Description: "The Datatype Of The Dynamodb Partition Key."
+    Type: String
+    AllowedValues: ["N", "S", "B"]
+    ConstraintDescription: "the Datatype Should Be Either N (number), S (string) Or B (binary)"
+  DynamoDBTableSortKey:
+    Default: sortKey
+    Description: "The Name Of The Dynamodb Partition Key."
+    Type: String
+    MinLength: 2
+    MaxLength: 30
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9\-_]*'
+    ConstraintDescription: "Must begin with a letter and contain only alphanumeric characters."
+  DynamoDBTableSortKeyAttributeType:
+    Default: "N"
+    Description: "The Datatype Of The Dynamodb Partition Key."
+    Type: String
+    AllowedValues: ["N", "S", "B"]
+    ConstraintDescription: "the Datatype Should Be Either N (number), S (string) Or B (binary)"
+Resources:
+  ###################################### DynamoDB Table ############################################
+  DynamoDBTable: 
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName: !Ref DynamoDBTablePartitionKey
+          AttributeType: !Ref DynamoDBTablePartitionKeyAttributeType
+        - 
+          AttributeName: !Ref DynamoDBTableSortKey
+          AttributeType: !Ref DynamoDBTableSortKeyAttributeType
+      KeySchema: 
+        - 
+          AttributeName: !Ref DynamoDBTablePartitionKey
+          KeyType: "HASH"
+        - 
+          AttributeName: !Ref DynamoDBTableSortKey
+          KeyType: "RANGE"
+      TableName: !Sub "${DynamoDBTableName}-${Environment}-${AWS::Region}"
+      BillingMode: PAY_PER_REQUEST 
+      SSESpecification:
+            KMSMasterKeyId: !Sub 'alias/${DynamoDBTableKmsMasterKeyAlias}'
+            SSEEnabled: True
+            SSEType: KMS
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key:  Environment
+          Value: !Ref Environment
+Outputs:
+  DynamoDBTableArn:
+    Description: The Arn of the DynamoDB Table.
+    Value: !GetAtt DynamoDBTable.Arn
