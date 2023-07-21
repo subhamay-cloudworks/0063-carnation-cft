@@ -36,14 +36,14 @@ Metadata:
       - LambdaFunctionMemory
       - LambdaFunctionCodeBucket
       - LambdaFunctionCodeKey
-      - LambdaFunctionName
+      - LambdaFunctionBaseName
       - LambdaFunctionDescription
       - LambdaReservedConcurrency
     #################################### DynamoDB Table ############################################
     - Label:
         default: "DynamoDB Table:"
       Parameters: 
-      - DynamoDBTableName
+      - DynamoDBTableBaseName
     #################################### SQS Queue #################################################
     - Label: 
         default: "SQS Queue:"
@@ -68,14 +68,14 @@ Metadata:
         default: "Lambda Function Code S3 Bucket."
       LambdaFunctionCodeKey: 
         default: "Lambda Function Code Zip File Key."
-      LambdaFunctionName:
+      LambdaFunctionBaseName:
         default: "Name of the Lambda Function."
       LambdaFunctionDescription:
         default: "Lambda Function Description." 
       LambdaReservedConcurrency:
         default: "Lambda Reserved Concurrency."
       ################################## DynamoDB Table ############################################
-      DynamoDBTableName: 
+      DynamoDBTableBaseName: 
         default: "Target DynamoDB Table:"
       ################################## SQS Queue #################################################
       SQSQueueURL:
@@ -149,12 +149,12 @@ Parameters:
     MaxLength: 100
     AllowedPattern: "[a-zA-Z0-9-/_.]*"
     ConstraintDescription: "The length should be between 10 and 100, must contain only lowercase letter,numbers,dash, dot, underscore"
-  LambdaFunctionName:
+  LambdaFunctionBaseName:
     Default: processing-lambda
     Description: Lambda Function Name
     Type: String
-    MinLength: 15
-    MaxLength: 50
+    MinLength: 10
+    MaxLength: 40
     AllowedPattern: "[a-zA-Z0-9-]*"
     ConstraintDescription: The length should be between 15 and 50, must contain only lowercase letters and dash(-) and should start with a letter.
   LambdaFunctionDescription:
@@ -172,7 +172,7 @@ Parameters:
     MinValue: 0
     MaxValue: 5
   ###################################### DynamoDB Table ############################################
-  DynamoDBTableName:
+  DynamoDBTableBaseName:
     Default: dynamodb-table
     Description: "The Name Of The Dynamodb Table Used For Iterating Using Step Function Map State."
     Type: String
@@ -182,7 +182,15 @@ Parameters:
     ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash and should start with a letter."
   ###################################### SQS Queue #################################################
   SQSQueueURL:
+    Default: "https://sqs.us-east-1.amazonaws.com/123456789012/queue-name-devl-us-east-1"
     Description: "The URL Of The SQS Queue Used To Store The Failed Events."
+    Type: String
+    MinLength: 10
+    MaxLength: 300
+    ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash and should start with a letter."
+  SQSDeadLetterQueueURL:
+    Default: "https://sqs.us-east-1.amazonaws.com/123456789012/queue-name-devl-us-east-1"
+    Description: "The URL Of The Dead Letter SQS Queue Used To Park The Error Failure Events for Support team to probe."
     Type: String
     MinLength: 10
     MaxLength: 300
@@ -193,7 +201,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Runtime: !Ref LambdaRuntime
-      FunctionName: !Sub  '${LambdaFunctionName}-${Environment}-${AWS::Region}'
+      FunctionName: !Sub  '${ProjectName}-${LambdaFunctionBaseName}-${Environment}-${AWS::Region}'
       Description: !Ref LambdaFunctionDescription
       Role: !Ref LambdaExecutionRoleArn
       Handler: !Ref LambdaHandlerPath
@@ -207,9 +215,10 @@ Resources:
         Mode: Active
       Environment:
         Variables:
-          DYNAMODB_TABLE_NAME: !Ref DynamoDBTableName
+          DYNAMODB_TABLE_NAME: !Sub "${ProjectName}-${DynamoDBTableBaseName}-${Environment}-${AWS::Region}"
           DYNAMODB_TABLE_NAME_1: "dummy"
           SQS_QUEUE_URL: !Ref SQSQueueURL
+          DEAD_LETTER_QUEUE_URL: !Ref SQSDeadLetterQueueURL
       Tags: 
         - Key: ProjectName
           Value: !Ref ProjectName

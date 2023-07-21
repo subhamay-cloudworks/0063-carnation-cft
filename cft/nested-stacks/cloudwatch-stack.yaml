@@ -164,7 +164,7 @@ Parameters:
   ###################################### Project Name and Environment ##############################
   ProjectName:
     Default: project
-    Description: "The Project Name."
+    Description: "The Project Name"
     Type: String
     MinLength: 5
     MaxLength: 30
@@ -196,7 +196,7 @@ Parameters:
     ConstraintDescription: The length should be between 10 and 50, must contain only lowercase letter,numbers,dash, dot and should start with a letter.
   ###################################### 1. Lambda Invocations CW Alarm ############################
   AlarmNameLambdaInvocations:
-    Default: lambda-function-invocations-alarm
+    Default: lambda-invocations-alarm
     Description: "The Lambda Invocations Demo Alarm."
     Type: String
     MinLength: 10
@@ -237,7 +237,7 @@ Parameters:
     AllowedValues: [GreaterThanThreshold, GreaterThanOrEqualToThreshold, LessThanThreshold, LessThanOrEqualToThreshold]
   ###################################### 2. Lambda Error CW Alarm ##################################
   AlarmNameLambdaErrors:
-    Default: lambda-function-errors-alarm
+    Default: lambda-errors-alarm
     Description: "The Lambda Errors Demo Alarm."
     Type: String
     MinLength: 10
@@ -278,7 +278,7 @@ Parameters:
     AllowedValues: [GreaterThanThreshold, GreaterThanOrEqualToThreshold, LessThanThreshold, LessThanOrEqualToThreshold]
   ###################################### 3. Lambda Throttles CW Alarm ##############################
   AlarmNameLambdaThrottles:
-    Default: lambda-function-throttles-alarm
+    Default: lambda-throttles-alarm
     Description: "The Lambda Throttles Demo Alarm."
     Type: String
     MinLength: 10
@@ -319,7 +319,7 @@ Parameters:
     AllowedValues: [GreaterThanThreshold, GreaterThanOrEqualToThreshold, LessThanThreshold, LessThanOrEqualToThreshold]
   ###################################### 4. Lambda Duration CW Alarm ###############################
   AlarmNameLambdaDuration:
-    Default: lambda-function-duration-alarm
+    Default: lambda-duration-alarm
     Description: "The Lambda Duration Demo Alarm."
     Type: String
     MinLength: 10
@@ -360,7 +360,7 @@ Parameters:
     AllowedValues: [GreaterThanThreshold, GreaterThanOrEqualToThreshold, LessThanThreshold, LessThanOrEqualToThreshold]
   ###################################### 5. Lambda Concurrent Executions CW Alarm ##################
   AlarmNameLambdaConcurrentExecutions:
-    Default: lambda-function-concurrent-executions-alarm
+    Default: lambda-conc-exec-alarm
     Description: "The Lambda Concurrent Executions Demo Alarm."
     Type: String
     MinLength: 10
@@ -405,7 +405,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
       ActionsEnabled: true
-      AlarmName: !Sub '${AlarmNameLambdaInvocations}-${Environment}-${AWS::Region}'
+      AlarmName: !Sub '${ProjectName}-${AlarmNameLambdaInvocations}-${Environment}-${AWS::Region}'
       AlarmDescription: !Sub "${ProjectName} - Alarm for number Lambda function invocations" 
       AlarmActions:
         - !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}'
@@ -426,7 +426,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
       ActionsEnabled: true
-      AlarmName: !Sub '${AlarmNameLambdaErrors}-${Environment}-${AWS::Region}'
+      AlarmName: !Sub '${ProjectName}-${AlarmNameLambdaErrors}-${Environment}-${AWS::Region}'
       AlarmDescription: !Sub "${ProjectName} - Alarm for number Lambda function errors" 
       AlarmActions:
         - !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}'
@@ -447,7 +447,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
       ActionsEnabled: true
-      AlarmName: !Sub '${AlarmNameLambdaThrottles}-${Environment}-${AWS::Region}'
+      AlarmName: !Sub '${ProjectName}-${AlarmNameLambdaThrottles}-${Environment}-${AWS::Region}'
       AlarmDescription: !Sub "${ProjectName} - Alarm for Lambda function throttles" 
       AlarmActions: 
         - !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}'
@@ -468,7 +468,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
       ActionsEnabled: true
-      AlarmName: !Sub '${AlarmNameLambdaDuration}-${Environment}-${AWS::Region}'
+      AlarmName: !Sub '${ProjectName}-${AlarmNameLambdaDuration}-${Environment}-${AWS::Region}'
       AlarmDescription: !Sub "${ProjectName} - Alarm for Lambda function duration" 
       AlarmActions:
         - !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}'
@@ -489,7 +489,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
       ActionsEnabled: true
-      AlarmName: !Sub '${AlarmNameLambdaConcurrentExecutions}-${Environment}-${AWS::Region}'
+      AlarmName: !Sub '${ProjectName}-${AlarmNameLambdaConcurrentExecutions}-${Environment}-${AWS::Region}'
       AlarmDescription: !Sub "${ProjectName} - Alarm for Lambda concurrent executions" 
       AlarmActions:
         - !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}'

@@ -34,7 +34,7 @@ Metadata:
     - Label: 
         default: "SQS Configuration"
       Parameters: 
-        - QueueName
+        - SQSQueueBaseName
         - DelaySeconds
         - MaximumMessageSize
         - MessageRetentionPeriod
@@ -50,8 +50,8 @@ Metadata:
       KmsMasterKeyAlias:
         default: "KMS Key Alias."
       ################################## SQS Queue #################################################
-      QueueName:
-        default: "The SQS Queue Name."
+      SQSQueueBaseName:
+        default: "The SQS Queue Base Name."
       DelaySeconds:
         default: "Delay Seconds."
       MaximumMessageSize:
@@ -88,9 +88,13 @@ Parameters:
     AllowedPattern: "[a-zA-Z0-9-]*"
     ConstraintDescription: "The length of the KMS Key Alias should be beteen 5 and 20 and can only contain lowercase alphanumeric characters and dash."
   ###################################### SQS Queue #################################################
-  QueueName:
+  SQSQueueBaseName:
     Type: String
     Description: "SQS Queue Name."
+    MinLength: 8
+    MaxLength: 20
+    AllowedPattern: "[a-z][a-z0-9-]*"
+    ConstraintDescription: "The length should be between 8 and 20, must contain only lowercase letter, number, dash, dot and should start with a letter."
   DelaySeconds:
     Type: Number
     Description: "Delay Seconds."
@@ -131,7 +135,7 @@ Resources:
       KmsMasterKeyId: !Sub 'alias/${KmsMasterKeyAlias}'
       MaximumMessageSize: !Ref MaximumMessageSize
       MessageRetentionPeriod: !Ref MessageRetentionPeriod
-      QueueName: !Sub "${QueueName}-${Environment}-${AWS::Region}"
+      QueueName: !Sub "${ProjectName}-${SQSQueueBaseName}-${Environment}-${AWS::Region}"
       ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
       Tags: 
         - Key: Project

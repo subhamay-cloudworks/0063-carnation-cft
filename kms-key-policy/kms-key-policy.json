@@ -1,57 +1,23 @@
 {
     "Version": "2012-10-17",
-    "Id": "key-consolepolicy-3",
+    "Id": "KMS Key Policy",
     "Statement": [
         {
             "Sid": "Enable IAM User Permissions",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::807724355529:root"
+                "AWS": [
+                    "arn:aws:iam::<AWS Account Id>:root"
+                ]
             },
             "Action": "kms:*",
-            "Resource": "*"
-        },
-        {
-            "Sid": "Allow Amazon CloudWatch to use this key",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "cloudwatch.amazonaws.com"
-            },
-            "Action": [
-                "kms:Decrypt",
-                "kms:GenerateDataKey*"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "Allow Amazon SQS to use this key",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "sqs.amazonaws.com"
-            },
-            "Action": [
-                "kms:Decrypt",
-                "kms:GenerateDataKey*"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "Allow Amazon SNS to use this key",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "sns.amazonaws.com"
-            },
-            "Action": [
-                "kms:Decrypt",
-                "kms:GenerateDataKey*"
-            ],
             "Resource": "*"
         },
         {
             "Sid": "Allow access for Key Administrators",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::807724355529:user/iamadmin"
+                "AWS": "arn:aws:iam::<AWS Account Id>:user/iamadmin"
             },
             "Action": [
                 "kms:Create*",
@@ -68,6 +34,26 @@
                 "kms:UntagResource",
                 "kms:ScheduleKeyDeletion",
                 "kms:CancelKeyDeletion"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AWS Services allowed to use the encryption",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": [
+                    "sns.amazonaws.com",
+                    "sqs.amazonaws.com",
+                    "s3.amazonaws.com",
+                    "dynamodb.amazonaws.com"
+                ]
+            },
+            "Action": [
+                "kms:Encrypt*",
+                "kms:Decrypt*",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:Describe*"
             ],
             "Resource": "*"
         }
