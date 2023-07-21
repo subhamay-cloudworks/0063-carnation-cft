@@ -18,6 +18,7 @@ sqs_client = boto3.client(
 dynamodb_table = os.getenv("DYNAMODB_TABLE_NAME")
 dynamodb_table_dummy = os.getenv("DYNAMODB_TABLE_NAME_1")
 sqs_queue_url = os.getenv("SQS_QUEUE_URL")
+dead_letter_queue_url = os.getenv("DEAD_LETTER_QUEUE_URL")
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -59,27 +60,36 @@ def handler(event, context):
     random_strings = []
     for message in sqs_messages:
         random_string_dict = dict(
-            sequence_no=message.get("sequence_no"),
-            random_value=message.get("random_value"),
-            current_time=message.get("current_time"),
-            retry_attempt=message.get("retry_attempt") + 1 if message.get(
-                "retry_attempt") else 1,
-            start_seq=message.get("start_seq"),
-            end_seq=message.get("end_seq")
-        )
-        random_strings.append(random_string_dict)
+                sequence_no=message.get("sequence_no"),
+                random_value=message.get("random_value"),
+                current_time=message.get("current_time"),
+                retry_attempt=message.get("retry_attempt"),
+                start_seq=message.get("start_seq"),
+                end_seq=message.get("end_seq")
+            )
+        if int(message.get("retry_attempt")) < 3:
+            random_strings.append(random_string_dict)
+        else:
+            # Push the message to the Dead Letter Queue
+            message_attributes=dict(Comment=dict(DataType="String",StringValue="This message failed to get inserted after 3 retry attempts on consecutive days"))
+            response = sqs_client.send_message(QueueUrl=dead_letter_queue_url,
+                                               DelaySeconds=10,
+                                               MessageAttributes=message_attributes,
+                                               MessageBody=json.dumps(random_string_dict) 
+                                               )
+            logger.info(f"DLQ response : {json.dumps(response)}")
 
-    # logger.info(f"random_strings (from SQS)= {json.dumps(random_strings)}")
     if start_seq < end_seq:
-        for i in range(start_seq-1, end_seq):
+        for i in range(start_seq, end_seq):
             random_string_dict = dict(
-                sequence_no=i+1,
+                sequence_no=1 if i < 1 else i, 
                 random_value=str(uuid.uuid4()),
                 current_time=int(time.time()),
                 start_seq=start_seq,
-                end_seq=end_seq
+                end_seq=end_seq,
+                retry_attempt=0
             )
-            time.sleep(random.randint(0, 2))
+            # time.sleep(random.randint(0, 1))
             random_strings.append(random_string_dict)
 
     logger.info(f"random_strings :: {json.dumps(random_strings)}")

@@ -34,7 +34,7 @@ Metadata:
     - Label: 
         default: "DynamoDB Configuration"
       Parameters: 
-        - DynamoDBTableName
+        - DynamoDBTableBaseName
         - DynamoDBTablePartitionKey
         - DynamoDBTablePartitionKeyAttributeType
     ParameterLabels:
@@ -42,7 +42,7 @@ Metadata:
         default: "Project Name."
       Environment:
         default: "Environment Name."
-      DynamoDBTableName: 
+      DynamoDBTableBaseName: 
         default: "The Name of the DynamoDB Table."
       DynamoDBTablePartitionKey:
         default: "The Name of the Partition Key."
@@ -74,8 +74,8 @@ Parameters:
     AllowedPattern: "[a-zA-Z0-9-]*"
     ConstraintDescription: "The length of the KMS Key Alias should be beteen 5 and 20 and can only contain lowercase alphanumeric characters and dash."
   ###################################### DynamoDB Table ############################################
-  DynamoDBTableName:
-    Default: dynamodb-table-name
+  DynamoDBTableBaseName:
+    Default: random-string
     Description: "The Name Of The Dynamodb Table."
     Type: String
     MinLength: 10
@@ -131,7 +131,7 @@ Resources:
         - 
           AttributeName: !Ref DynamoDBTableSortKey
           KeyType: "RANGE"
-      TableName: !Sub "${DynamoDBTableName}-${Environment}-${AWS::Region}"
+      TableName: !Sub "${ProjectName}-${DynamoDBTableBaseName}-${Environment}-${AWS::Region}"
       BillingMode: PAY_PER_REQUEST 
       SSESpecification:
             KMSMasterKeyId: !Sub 'alias/${DynamoDBTableKmsMasterKeyAlias}'

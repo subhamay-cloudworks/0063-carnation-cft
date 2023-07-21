@@ -34,16 +34,25 @@
             "Retry": [
               {
                 "ErrorEquals": [
-                  "Lambda.ServiceException",
-                  "Lambda.AWSLambdaException",
-                  "Lambda.SdkClientException",
-                  "Lambda.TooManyRequestsException"
+                  "States.ALL"
                 ],
                 "IntervalSeconds": 2,
-                "MaxAttempts": 6,
+                "MaxAttempts": 3,
                 "BackoffRate": 2
               }
             ],
+            "End": true,
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Pass"
+              }
+            ]
+          },
+          "Pass": {
+            "Type": "Pass",
             "End": true
           }
         }

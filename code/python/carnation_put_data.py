@@ -18,6 +18,7 @@ dynamodb_table = os.getenv("DYNAMODB_TABLE_NAME")
 dynamodb_table_dummy = os.getenv("DYNAMODB_TABLE_NAME_1")
 sqs_queue_url = os.getenv("SQS_QUEUE_URL")
 
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -39,7 +40,7 @@ def python_obj_to_dynamo_obj(python_obj: dict) -> dict:
 
 
 def dynamodb_item_exists(partitionKey, sortKey, table_flag):
-    
+
     logger.info(f"dynamodb_item_exists :: table_flag = {table_flag}")
     try:
         response = dynamodb_client.get_item(
@@ -95,17 +96,14 @@ def handler(event, context):
 
     try:
         logger.info(f"event :: {json.dumps(event)}")
-        
+
         # Check if the specific item exists in the table
         partition_key = str(event.get("sequence_no"))
         sort_key = str(event.get("current_time"))
         start_seq = event.get("start_seq")
         end_seq = event.get("end_seq")
-        random_int = random.randint(start_seq, end_seq)
-        logger.info(f"random_int :: {random_int}")
 
-        table_flag = True if random_int % 2 == 0 else False   #### THis flag will determinine if the insert to be done in the correct table or dummy table
-        
+        table_flag=random.choice([True, False])
         item_exists = dynamodb_item_exists(
             partitionKey=partition_key,
             sortKey=sort_key,
@@ -120,7 +118,8 @@ def handler(event, context):
                 createdUnixTime=int(time.time()),
                 updatedUnixTime=int(time.time()),
                 randomStringValue=event.get(
-                "random_value")
+                "random_value"),
+                retryAttempt=event.get("retry_attempt")
             )
         else:
             dynamodb_item = dict(sequenceNo=int(partition_key),
@@ -128,22 +127,20 @@ def handler(event, context):
                 "current_time"),
                 createdUnixTime=int(time.time()),
                 randomStringValue=event.get(
-                "random_value")
+                "random_value"),
+                retryAttempt=event.get("retry_attempt")
             )
 
-        if event.get("retry_attempt"):
-            dynamodb_item['retryAttempt'] = event['retry_attempt']
-
         python_obj = python_obj_to_dynamo_obj(dynamodb_item)
-        logger.info(f"python_obj = {json.dumps(python_obj)}")
+        logger.info(f"*****python_obj = {json.dumps(python_obj)}")
         response = dynamo_db_put_item(python_obj, table_flag)
         if response:
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 return_message = dict(status="Success")
             else:
-                return_message = dict(status="Failure", event=event)
+                return_message = dict(status="Failure", event={key: (value if key != "retry_attempt" else value + 1) for (key,value) in event.items()})
         else:
-            return_message = dict(status="Failure", event=event)
+            return_message = dict(status="Failure", event={key: (value if key != "retry_attempt" else value + 1) for (key,value) in event.items()})
 
         return return_message
 

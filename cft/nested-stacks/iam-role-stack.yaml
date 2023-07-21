@@ -35,15 +35,15 @@ Metadata:
     - Label:
         default: "Service Names:"
       Parameters:
-      - LambdaFunctionNameOne
-      - LambdaFunctionNameTwo
-      - LambdaExecutionRoleName
-      - LambdaExecutionPolicyName
+      - LambdaFunctionOneBaseName
+      - LambdaFunctionTwoBaseName
+      - LambdaExecutionRoleBaseName
+      - LambdaExecutionPolicyBaseName
     #################################### DynamoDB Table ############################################
     - Label: 
         default: "DynamoDB Configuration:"
       Parameters: 
-      - DynamoDBTableName
+      - DynamoDBTableBaseName
     #################################### SNS Topic #################################################
     - Label: 
         default: "SNS Topic:"
@@ -58,8 +58,8 @@ Metadata:
     - Label:
         default: "Step Function:"
       Parameters:
-      - StepFunctionExecutionRoleName
-      - StepFunctionExecutionPolicyName
+      - StepFunctionExecutionRoleBaseName
+      - StepFunctionExecutionPolicyBaseName
     ParameterLabels:
       ########################################### Project Name and Environment #######################
       ProjectName:
@@ -67,16 +67,16 @@ Metadata:
       Environment:
         default: "Environment Name."
       ################################## Lambda Function ###########################################
-      LambdaFunctionNameOne: 
+      LambdaFunctionOneBaseName: 
         default: "Processing Lammba Function Name."
-      LambdaFunctionNameTwo: 
+      LambdaFunctionTwoBaseName: 
         default: "Processing Lammba Function Name."
-      LambdaExecutionRoleName: 
+      LambdaExecutionRoleBaseName: 
         default: "Lambda Function Execution Role Name."
-      LambdaExecutionPolicyName:
+      LambdaExecutionPolicyBaseName:
         default: "Lambda Function Execution Policy Name."
       ################################## DynamoDB Table ############################################
-      DynamoDBTableName: 
+      DynamoDBTableBaseName: 
         default: "DynamoDB Table."
       ################################## SNS Topic #################################################
       SNSTopicBaseName:
@@ -85,9 +85,9 @@ Metadata:
       SQSQueueBaseName:
         default: "SQS Queue."
       ################################## Step Function #############################################
-      StepFunctionExecutionRoleName: 
+      StepFunctionExecutionRoleBaseName: 
         default: "Step Function Execution Role Name."
-      StepFunctionExecutionPolicyName: 
+      StepFunctionExecutionPolicyBaseName: 
         default: "Step Function Execution Policy Name."
       # StepFunctionName: 
       #   default: "The Name Of The Step Function"
@@ -117,41 +117,41 @@ Parameters:
     AllowedPattern: "[a-z0-9-]*"
     ConstraintDescription: "The length of the KMS Key Id should be 36 and must be lowercase alphabets, numbers and dash."
   ##################################### Lambda Function ###########################################
-  LambdaFunctionNameOne:
+  LambdaFunctionOneBaseName:
     Default: some-lambda-function-name
     Description: Processing Lambda Function Name
     Type: String
-    MinLength: 20
-    MaxLength: 60
-    AllowedPattern: "[a-zA-Z0-9-]*"
-    ConstraintDescription: The length should be between 20 and 60, must contain only alphanumeric or dash.
-  LambdaFunctionNameTwo:
+    MinLength: 10
+    MaxLength: 40
+    AllowedPattern: '[a-zA-Z-]*'
+    ConstraintDescription: "Must be between 10 and 40 characters long and begin with a letter and can contain number or hyphen (-)."
+  LambdaFunctionTwoBaseName:
     Default: some-other-ambda-function-name
     Description: Processing Lambda Function Name
     Type: String
-    MinLength: 20
-    MaxLength: 60
-    AllowedPattern: "[a-zA-Z0-9-]*"
-    ConstraintDescription: The length should be between 20 and 60, must contain only alphanumeric or dash.
-  LambdaExecutionRoleName:
-    Default: Lambda-Function-Role-Name
+    MinLength: 10
+    MaxLength: 40
+    AllowedPattern: '[a-zA-Z-]*'
+    ConstraintDescription: "Must be between 10 and 40 characters long and begin with a letter and can contain number or hyphen (-)."
+  LambdaExecutionRoleBaseName:
+    Default: lambda-function-role-name
     Description: Lambda Function Execution Role Name
     Type: String
-    MinLength: 20
-    MaxLength: 60
+    MinLength: 10
+    MaxLength: 40
     AllowedPattern: "[a-zA-Z0-9-]*"
-    ConstraintDescription: The length should be between 20 and 60, must contain only alphanumeric or dash.
-  LambdaExecutionPolicyName:
-    Default: Lambda-Function-Policy-Name
+    ConstraintDescription: The length should be between 10 and 40, must contain only alphanumeric or dash.
+  LambdaExecutionPolicyBaseName:
+    Default: lambda-function-policy-name
     Description: Lambda Function Execution Policy Name
     Type: String
-    MinLength: 20
-    MaxLength: 60
+    MinLength: 10
+    MaxLength: 40
     AllowedPattern: "[a-zA-Z0-9-]*"
-    ConstraintDescription: The length should be between 20 and 60, must contain only alphanumeric or dash.
+    ConstraintDescription: The length should be between 10 and 40, must contain only alphanumeric or dash.
   ###################################### DynamoDB Table ############################################
-  DynamoDBTableName:
-    Default: carnation-table
+  DynamoDBTableBaseName:
+    Default: random-string
     Description: "The Name Of The Dynamodb Table Used For Iterating Using Step Function Map State."
     Type: String
     MinLength: 10
@@ -160,39 +160,47 @@ Parameters:
     ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash and should start with a letter."
   ###################################### SNS Topic #################################################
   SNSTopicBaseName:
-    Default: "carnation-sns-topic"
+    Default: "sns-topic"
     Description: "The Base Name Of The Sns Topic. The Region And Environment Will Be Added As Suffix By The Template."
     Type: String
-    MinLength: 10
+    MinLength: 8
     MaxLength: 40
     AllowedPattern: "[a-z][a-z0-9-]*"
-    ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash, dot and should start with a letter."
+    ConstraintDescription: "The length should be between 8 and 40, must contain only lowercase letter, number, dash, dot and should start with a letter."
   ###################################### SQS Queue #################################################
   SQSQueueBaseName:
-    Default: "some-sqs-queue"
-    Description: "The Base Name Of The Sqs Queue (Dead Letter Quque). The Region And Environment Will Be Added As Suffix By The Template."
+    Default: "queue"
+    Description: "The Base Name Of The Sqs Queue. The Region And Environment Will Be Added As Suffix By The Template."
+    Type: String
+    MinLength: 5
+    MaxLength: 40
+    AllowedPattern: "[a-z][a-z0-9-]*"
+    ConstraintDescription: "The length should be between 5 and 40, must contain only lowercase letter, number, dash, dot and should start with a letter."
+  SQSDeadLetterQueueBaseName:
+    Default: "dead-letter-queue"
+    Description: "The Base Name Of The Dead Letter Queue. The Region And Environment Will Be Added As Suffix By The Template."
+    Type: String
+    MinLength: 5
+    MaxLength: 40
+    AllowedPattern: "[a-z][a-z0-9-]*"
+    ConstraintDescription: "The length should be between 5 and 40, must contain only lowercase letter, number, dash, dot and should start with a letter."
+  ########################################### State Machine #############################################
+  StepFunctionExecutionRoleBaseName:
+    Default: step-function-role
+    Description: Step Function Execution Role Name
     Type: String
     MinLength: 10
     MaxLength: 40
-    AllowedPattern: "[a-z][a-z0-9-]*"
-    ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash, dot and should start with a letter."
-  ########################################### State Machine #############################################
-  StepFunctionExecutionRoleName:
-    Default: Step-Function-Role-Name
-    Description: Step Function Execution Role Name
-    Type: String
-    MinLength: 20
-    MaxLength: 60
     AllowedPattern: "[a-zA-Z0-9-]*"
-    ConstraintDescription: The length should be between 20 and 60, must contain only alphanumeric or dash.
-  StepFunctionExecutionPolicyName:
-    Default: Step-Function-Policy-Name
+    ConstraintDescription: The length should be between 10 and 40, must contain only alphanumeric or dash.
+  StepFunctionExecutionPolicyBaseName:
+    Default: step-fucntion-policy
     Description: Step Function Execution Policy Name
     Type: String
-    MinLength: 20
-    MaxLength: 60
+    MinLength: 10
+    MaxLength: 40
     AllowedPattern: "[a-zA-Z0-9-]*"
-    ConstraintDescription: The length should be between 20 and 60, must contain only alphanumeric or dash.
+    ConstraintDescription: The length should be between 10 and 40, must contain only alphanumeric or dash.
   # StepFunctionName:
   #   Default: step-function-name
   #   Description: Step Function Execution Policy Name
@@ -207,7 +215,7 @@ Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Ref LambdaExecutionRoleName
+      RoleName: !Sub '${ProjectName}-${LambdaExecutionRoleBaseName}'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -218,7 +226,7 @@ Resources:
           Action:
           - sts:AssumeRole
       Policies:
-        - PolicyName: !Ref LambdaExecutionPolicyName
+        - PolicyName: !Sub '${ProjectName}-${LambdaExecutionPolicyBaseName}'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -229,19 +237,19 @@ Resources:
                 - logs:CreateLogStream
                 - logs:PutLogEvents
               Resource: 
-                - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionNameOne}-${Environment}-${AWS::Region}:*'
-                - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionNameTwo}-${Environment}-${AWS::Region}:*'
+                - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-${LambdaFunctionOneBaseName}-${Environment}-${AWS::Region}:*'
+                - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-${LambdaFunctionTwoBaseName}-${Environment}-${AWS::Region}:*'
             - Sid: AllowDynamoDBPutAndGetItem
               Effect: Allow
               Action: 
                 - dynamodb:PutItem
                 - dynamodb:GetItem
-              Resource: !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBTableName}-${Environment}-${AWS::Region}'
+              Resource: !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ProjectName}-${DynamoDBTableBaseName}-${Environment}-${AWS::Region}'
             - Sid: AllowSNSPublishMessage
               Effect: Allow
               Action: 
                 - sns:Publish
-              Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicBaseName}-${Environment}-${AWS::Region}'
+              Resource: !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${ProjectName}-${SNSTopicBaseName}-${Environment}-${AWS::Region}'
             - Sid: AllowKMSDecrypt
               Effect: Allow
               Action: 
@@ -256,7 +264,9 @@ Resources:
                 - sqs:ReceiveMessage
                 - sqs:SendMessage
                 - sqs:DeleteMessage
-              Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${SQSQueueBaseName}-${Environment}-${AWS::Region}'
+              Resource: 
+              - !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${ProjectName}-${SQSQueueBaseName}-${Environment}-${AWS::Region}'
+              - !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${ProjectName}-${SQSDeadLetterQueueBaseName}-${Environment}-${AWS::Region}'
       Tags: 
         - Key: ProjectName
           Value: !Ref ProjectName
@@ -267,7 +277,7 @@ Resources:
   StepFunctionExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Ref StepFunctionExecutionRoleName
+      RoleName: !Sub '${ProjectName}-${StepFunctionExecutionRoleBaseName}'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -280,7 +290,7 @@ Resources:
       ManagedPolicyArns: 
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
       Policies:
-        - PolicyName: !Ref StepFunctionExecutionPolicyName
+        - PolicyName: !Sub '${ProjectName}-${StepFunctionExecutionPolicyBaseName}'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -297,7 +307,7 @@ Resources:
               Action: 
               - sqs:SendMessage
               - sqs:PurgeQueue
-              Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${SQSQueueBaseName}-${Environment}-${AWS::Region}'
+              Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${ProjectName}-${SQSQueueBaseName}-${Environment}-${AWS::Region}'
       Tags:
         - Key: ProjectName
           Value: !Ref ProjectName
