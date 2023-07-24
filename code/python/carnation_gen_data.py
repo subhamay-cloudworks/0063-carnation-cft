@@ -48,8 +48,8 @@ def receive_sqs_messages():
 
 def handler(event, context):
 
-    logger.info(f"event :: {json.dumps(event)}")
-    start_seq = 0 if int(event["start_seq"]) < 0 else int(event["start_seq"])
+    logger.info(f"function : {context.function_name} - event :: {json.dumps(event)}")
+    start_seq = 0 if int(event["start_seq"]) <= 0 else int(event["start_seq"])
     end_seq = int(event["end_seq"])
 
     '''
@@ -82,7 +82,7 @@ def handler(event, context):
     if start_seq < end_seq:
         for i in range(start_seq, end_seq):
             random_string_dict = dict(
-                sequence_no=1 if i < 1 else i, 
+                sequence_no=i, 
                 random_value=str(uuid.uuid4()),
                 current_time=int(time.time()),
                 start_seq=start_seq,
