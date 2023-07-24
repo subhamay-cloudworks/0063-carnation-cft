@@ -10,6 +10,7 @@ Metadata:
   ProjectName: Carnation
   Modification History:
     - 1.0.0  - May 09, 2023  -- Initial Version 
+    - 1.0.1  - Jul 23, 2023  -- Added CloudWatch Log access by the State Machine
   Resources: 
     - IAM Role
     - IAM Policy Attached To The Role
@@ -308,6 +309,20 @@ Resources:
               - sqs:SendMessage
               - sqs:PurgeQueue
               Resource: !Sub 'arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${ProjectName}-${SQSQueueBaseName}-${Environment}-${AWS::Region}'
+            - Sid: AllowCloudWatchLogStream
+              Effect: Allow
+              Action: 
+              - logs:CreateLogDelivery
+              - logs:CreateLogStream
+              - logs:GetLogDelivery
+              - logs:UpdateLogDelivery
+              - logs:DeleteLogDelivery
+              - logs:ListLogDeliveries
+              - logs:PutLogEvents
+              - logs:PutResourcePolicy
+              - logs:DescribeResourcePolicies
+              - logs:DescribeLogGroups
+              Resource: "*"
       Tags:
         - Key: ProjectName
           Value: !Ref ProjectName

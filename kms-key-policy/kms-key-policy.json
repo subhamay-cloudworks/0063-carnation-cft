@@ -42,10 +42,12 @@
             "Effect": "Allow",
             "Principal": {
                 "Service": [
+                    "s3.amazonaws.com",
                     "sns.amazonaws.com",
                     "sqs.amazonaws.com",
-                    "s3.amazonaws.com",
-                    "dynamodb.amazonaws.com"
+                    "logs.amazonaws.com",
+                    "dynamodb.amazonaws.com",
+                    "cloudwatch.amazonaws.com"
                 ]
             },
             "Action": [

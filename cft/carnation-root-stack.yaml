@@ -15,6 +15,9 @@ Metadata:
                                 -- Added a dead letter queue to park the failed events even after 3 retries on 3 successive days.
                                 -- Cleaned up the Stack parameter description.
                                 -- Fixed some typo errors.
+    - 1.0.2  - Jul 22, 2023     -- Added Lambda and Step Function CloudWatch Log Group
+                                -- Fixed some typo errors.
+                                -- Renamed the state-machine.json to carnation-state-machine.asl.json
 
   Resources: 
     - One SNS Topic with KMS Encryption and Email Subscription.
@@ -800,6 +803,7 @@ Resources:
         DynamoDBTableBaseName: "not-applicable"
         SQSQueueURL: !GetAtt CarnationSQSQueue.Outputs.SQSQueueURL
         SQSDeadLetterQueueURL: !GetAtt CarnationSQSDeadLetterQueue.Outputs.SQSQueueURL
+        KmsMasterKeyId: !Ref KmsMasterKeyId
       TimeoutInMinutes: 15
   ###################################### Lambda Function Two #######################################
   CarnationPutDataLambdaFunction:
@@ -823,15 +827,35 @@ Resources:
         DynamoDBTableBaseName: !Ref DynamoDBTableBaseName
         SQSQueueURL: !GetAtt CarnationSQSQueue.Outputs.SQSQueueURL
         SQSDeadLetterQueueURL: !GetAtt CarnationSQSDeadLetterQueue.Outputs.SQSQueueURL
+        KmsMasterKeyId: !Ref KmsMasterKeyId
       TimeoutInMinutes: 15
   ###################################### State Machine #############################################
+  CarnationStateMachineLogGroup:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      KmsKeyId: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsMasterKeyId}'
+      LogGroupName: !Sub '/aws/states/${ProjectName}-${StepFunctionBaseName}-${Environment}-${AWS::Region}'
+      RetentionInDays: 14
+      Tags: 
+      - Key: ProjectName
+        Value: !Ref ProjectName
+      - Key:  Environment
+        Value: !Ref Environment
   CarnationStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       StateMachineName: !Sub '${ProjectName}-${StepFunctionBaseName}-${Environment}-${AWS::Region}'
       DefinitionS3Location:
         Bucket: !Ref CodeRepositoryS3Bucket
-        Key: 0063-carnation/cft/state-machine/state-machine.json
+        Key: 0063-carnation/cft/state-machine/carnation-state-machine.asl.json
+      LoggingConfiguration:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt CarnationStateMachineLogGroup.Arn
+        Level: ALL
+        IncludeExecutionData: false
       DefinitionSubstitutions:
         GenDataLambda: !GetAtt CarnationGenDataLambdaFunction.Outputs.LambdaFunctionArn
         PutDataLambda: !GetAtt CarnationPutDataLambdaFunction.Outputs.LambdaFunctionArn
@@ -893,7 +917,7 @@ Outputs:
     Description: Carnation SNS Topc Subscription Arn
     Value: !GetAtt CarnationSNSTopic.Outputs.SNSSubscriptionArn
   CarnationSQSURL:
-    Description: Carnation SNS Topc Subscription Arn
+    Description: Carnation SQS Queue URL
     Value: !GetAtt CarnationSQSQueue.Outputs.SQSQueueURL
   CarnationSQSArn:
     Description: Carnation SQS Queue Arn
@@ -914,11 +938,20 @@ Outputs:
     Description: Carnation State Function Execution Role Arn
     Value: !GetAtt CarnationIAMExecutionRole.Outputs.StepFunctionExecutionRoleArn
   CarnationGenDataLambdaFunctionArn: 
-    Description: Carnation Seed DynamoDB Table Lambda Function Arn
+    Description: Carnation Generate A List of Random String Lambda Function Arn
     Value: !GetAtt CarnationGenDataLambdaFunction.Outputs.LambdaFunctionArn
   CarnationPutDataLambdaFunctionArn: 
     Description: Carnation Insert Data Into DynamoDB Table Lambda Function Arn
     Value: !GetAtt CarnationPutDataLambdaFunction.Outputs.LambdaFunctionArn
+  CarnationGenDataLambdaFunctionLogGroupArn: 
+    Description: Carnation Generate Data Lambda Function Log Group Arn
+    Value: !GetAtt CarnationGenDataLambdaFunction.Outputs.LambdaFunctionLogGroupArn
+  CarnationPutDataLambdaFunctionLogGroupArn: 
+    Description: Carnation Insert Data Into DynamoDB Table Lambda Function Log Group Arn
+    Value: !GetAtt CarnationPutDataLambdaFunction.Outputs.LambdaFunctionLogGroupArn
+  CarnationStateMachineLogGroupArn:
+    Description: Carnation State Machine Log Group Arn
+    Value: !GetAtt CarnationStateMachineLogGroup.Arn
   CarnationStateMachineArn:
     Description: Carnation State Machine Arn
     Value: !GetAtt CarnationStateMachine.Arn

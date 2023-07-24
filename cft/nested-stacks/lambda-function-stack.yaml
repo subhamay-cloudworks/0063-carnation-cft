@@ -10,6 +10,7 @@ Metadata:
   ProjectName: Carnation
   Modification History:
     - 1.0.0  - May 09, 2023  -- Initial Version 
+    - 1.0.1  - Jul 22, 2023  -- Added CloudWatch Log Group
   Resources: 
     - Lambda Function
   StepsToTest: |
@@ -25,6 +26,11 @@ Metadata:
       Parameters: 
       - ProjectName
       - Environment
+    #################################### KMS Key ###################################################
+    - Label: 
+        default: "KMS Key:"
+      Parameters: 
+      - KmsMasterKeyId
     #################################### Lambda Function ###########################################
     - Label:
         default: "Lambda Function Configuration:"
@@ -53,6 +59,11 @@ Metadata:
       ################################## Project Name and Environment ##############################
       ProjectName:
         default: "Project Name."
+      Environment: 
+        default: Environment Name."
+      ################################## KMS Key ###################################################
+      KmsMasterKeyId:
+        default: "KMS Key Id."
       ################################## Lambda Function ###########################################
       LambdaExecutionRoleArn: 
         default: "Lammba Function Execution Role Arn."
@@ -96,6 +107,12 @@ Parameters:
     Type: String
     AllowedValues: ["devl", "test", "prod"]
     ConstraintDescription: "The Environment must be devl / test or prod"
+  ###################################### KMS Key ###################################################
+  KmsMasterKeyId:
+    Default: e4c733c5-9fbe-4a90-bda1-6f0362bc9b89
+    Type: String
+    MinLength: 36
+    MaxLength: 36
   ###################################### Lambda Function ###########################################
   LambdaExecutionRoleArn:
     Default: arn:aws:iam::111111111111:role/lambda-role
@@ -196,6 +213,20 @@ Parameters:
     MaxLength: 300
     ConstraintDescription: "The length should be between 10 and 40, must contain only lowercase letter, number, dash and should start with a letter."
 Resources:
+  ###################################### Lambda Function Log Group #################################
+  LambdaFunctionLogGroup:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      KmsKeyId: !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsMasterKeyId}'
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${LambdaFunctionBaseName}-${Environment}-${AWS::Region}'
+      RetentionInDays: 14
+      Tags: 
+      - Key: ProjectName
+        Value: !Ref ProjectName
+      - Key:  Environment
+        Value: !Ref Environment
   ###################################### Lambda Function ###########################################
   LambdaFunction:
     Type: AWS::Lambda::Function
@@ -228,3 +259,6 @@ Outputs:
   LambdaFunctionArn: 
     Description: The Arn of the Lambda Function
     Value: !GetAtt LambdaFunction.Arn
+  LambdaFunctionLogGroupArn: 
+    Description: The Arn of the Lambda Function Log Group
+    Value: !GetAtt LambdaFunctionLogGroup.Arn
