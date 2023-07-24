@@ -39,15 +39,15 @@ def python_obj_to_dynamo_obj(python_obj: dict) -> dict:
     }
 
 
-def dynamodb_item_exists(partitionKey, sortKey, table_flag):
+def dynamodb_item_exists(partition_key, sort_key, table_flag):
 
     logger.info(f"dynamodb_item_exists :: table_flag = {table_flag}")
     try:
         response = dynamodb_client.get_item(
             TableName=dynamodb_table if table_flag else dynamodb_table_dummy,
             Key={
-                'sequenceNo': {'N': partitionKey},
-                'generatedUnixTime': {'N': sortKey}
+                'sequenceNo': {'N': partition_key},
+                'generatedUnixTime': {'N': sort_key}
             }
         )
 
@@ -56,11 +56,10 @@ def dynamodb_item_exists(partitionKey, sortKey, table_flag):
         if response:
             if not response.get('Item'):
                 logger.info(
-                    f"The item {dict(ID=partitionKey)} does not exist.")
+                    f"The item {dict(ID=partition_key)} does not exist.")
                 return False
             else:
-                dynamodb_item = dynamodb_obj_to_python_obj(response['Item'])
-                logger.info(f"The item {dict(ID=partitionKey)} exists.")
+                logger.info(f"The item {dict(ID=partition_key)} exists.")
                 return True
         else:
             return False
@@ -68,12 +67,10 @@ def dynamodb_item_exists(partitionKey, sortKey, table_flag):
     # An error occurred
     except ParamValidationError as e:
         logger.error(f"Parameter validation error: {e}")
-        # raise Exception(e)
         return False
     except ClientError as e:
         logger.error(f"Client error: {e}")
         return False
-        # raise Exception(e)
 
 
 def dynamo_db_put_item(item, table_flag):
@@ -95,18 +92,16 @@ def dynamo_db_put_item(item, table_flag):
 def handler(event, context):
 
     try:
-        logger.info(f"event :: {json.dumps(event)}")
+        logger.info(f"function : {context.function_name} - event :: {json.dumps(event)}")
 
         # Check if the specific item exists in the table
         partition_key = str(event.get("sequence_no"))
         sort_key = str(event.get("current_time"))
-        start_seq = event.get("start_seq")
-        end_seq = event.get("end_seq")
 
         table_flag=random.choice([True, False])
         item_exists = dynamodb_item_exists(
-            partitionKey=partition_key,
-            sortKey=sort_key,
+            partition_key=partition_key,
+            sort_key=sort_key,
             table_flag=table_flag
         )
         logger.info(f"item_exists = {item_exists}")
@@ -146,7 +141,7 @@ def handler(event, context):
 
     except ParamValidationError as e:
         logger.error(f"Parameter validation error: {e}")
-        raise Exception(e)
+        raise Exception(e.ParamValidationError)
     except ClientError as e:
         logger.error(f"Client error: {e}")
-        raise Exception(e)
+        raise Exception(e.ClientError)
