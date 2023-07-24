@@ -1,0 +1,21 @@
+name: "sonar cloud scan"
+on:
+  workflow_dispatch:
+
+jobs:
+  SonarCloudSCan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+            GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+            SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}
+        with:
+          args: >
+              -Dsonar.organization=subhamay-cloudworks
+              -Dsonar.projectKey=0063-carnation-cft
+              -Dsonar.python.coverage.reportPaths=coverage.xml
